@@ -1,0 +1,234 @@
+# Parallel Frontier — single config (see SPEC.md)
+# Everything lives here: sources, keywords, recipients, arXiv net + roster.
+
+# ─────────────────────────────────────────────────────────────────────────────
+# arXiv: broad category net → keyword gate → pinned lab/org roster
+# ─────────────────────────────────────────────────────────────────────────────
+arxiv:
+  # 1) The net: categories queried over a rolling 24h window (~100–300/day).
+  categories:
+    - cs.AI
+    - cs.CL
+    - cs.LG
+    - cs.CV
+    - stat.ML
+  window_hours: 24
+
+  # 2) Keyword gate: a netted paper reaches the Research digest only if its
+  #    title or abstract matches one of these (case-insensitive substring).
+  #    Net items with NO keyword/roster hit → archive (searchable, never emailed).
+  keywords:
+    # core LLM / scaling
+    - large language model
+    - LLM
+    - foundation model
+    - pretraining
+    - scaling law
+    - mixture-of-experts
+    - mixture of experts
+    - MoE
+    # reasoning / RL / agents
+    - reasoning
+    - chain-of-thought
+    - reinforcement learning
+    - RLHF
+    - RLAIF
+    - reward model
+    - agent
+    - agentic
+    - tool use
+    # capability surfaces
+    - long context
+    - long-context
+    - multimodal
+    - vision-language
+    - retrieval-augmented
+    - RAG
+    - code generation
+    - instruction tuning
+    - alignment
+    # efficiency / serving
+    - quantization
+    - distillation
+    - speculative decoding
+    - KV cache
+    - inference efficiency
+    # Chinese-language terms
+    - 大模型
+    - 大语言模型
+    - 生成式
+    - 智能体
+    - 强化学习
+    - 推理
+    - 多模态
+    - 对齐
+
+  # 3) Lab/org roster: ALWAYS pinned to the top of Research and shown in full,
+  #    regardless of the keyword gate. A paper is a "roster hit" if it matches a
+  #    roster author name OR an alias (model-family / lab name) in
+  #    title / abstract / comments.
+  #
+  #    NOTE: `authors` are romanized surface names and collide easily (esp.
+  #    common Chinese names). They only PIN (surface), never exclude, so a false
+  #    positive costs one extra line — but verify/prune these as you soak.
+  #    `aliases` (model & lab names) are the robust matchers.
+  roster:
+    - name: DeepSeek (深度求索)
+      authors: []                     # team rarely lists stable individual authors; rely on aliases
+      aliases: [DeepSeek, DeepSeek-V2, DeepSeek-V3, DeepSeek-R1, DeepSeek-Coder, DeepSeekMath, DeepSeek-VL]
+
+    - name: Qwen / Alibaba (通义千问)
+      authors: [Junyang Lin, Jingren Zhou, Bowen Yu, An Yang, Binyuan Hui, Chang Zhou]
+      aliases: [Qwen, Qwen2, Qwen2.5, Qwen3, QwQ, Tongyi, 通义千问]
+
+    - name: Zhipu AI / Tsinghua KEG (智谱)
+      authors: [Jie Tang, Aohan Zeng, Zhengxiao Du, Ming Ding, Yuxiao Dong]
+      aliases: [GLM, ChatGLM, GLM-4, CogVLM, CogView, CogAgent, Zhipu]
+
+    - name: Moonshot AI (月之暗面)
+      authors: []
+      aliases: [Kimi, Kimi-K2, Moonshot, 月之暗面]
+
+    - name: Shanghai AI Lab (上海人工智能实验室)
+      authors: [Kai Chen, Jifeng Dai, Yu Qiao, Wenhai Wang, Conghui He]
+      aliases: [InternLM, InternVL, Intern-, InternImage, OpenGVLab, 书生]
+
+    - name: ByteDance Seed (字节豆包)
+      authors: []
+      aliases: [Doubao, ByteDance Seed, Seed-, BAGEL, 豆包]
+
+    - name: 01.AI (零一万物)
+      authors: [Kai-Fu Lee]
+      aliases: [Yi-, Yi-34B, Yi-Lightning, 01.AI, 零一万物]
+
+    - name: Baichuan (百川智能)
+      authors: []
+      aliases: [Baichuan, Baichuan2, Baichuan-, 百川]
+
+    - name: MiniMax
+      authors: []
+      aliases: [MiniMax, MiniMax-01, ABAB]
+
+    - name: StepFun (阶跃星辰)
+      authors: []
+      aliases: [StepFun, Step-1, Step-2, 阶跃星辰]
+
+    - name: Tencent Hunyuan (腾讯混元)
+      authors: []
+      aliases: [Hunyuan, 混元]
+
+    - name: Baidu ERNIE (文心)
+      authors: []
+      aliases: [ERNIE, Wenxin, 文心]
+
+    - name: Tsinghua / OpenBMB
+      authors: [Zhiyuan Liu, Maosong Sun]
+      aliases: [MiniCPM, CPM-, OpenBMB]
+
+    - name: Ant Group (蚂蚁)
+      authors: []
+      aliases: [Ling-, Bailing, Ant Group, 百灵]
+
+    - name: SenseTime (商汤)
+      authors: []
+      aliases: [SenseNova, SenseChat, 日日新, 商汤]
+
+    - name: Skywork / Kunlun (昆仑万维)
+      authors: []
+      aliases: [Skywork, 天工, Kunlun]
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Other sources — stubs to be filled per SPEC build order.
+# ─────────────────────────────────────────────────────────────────────────────
+regulation:
+  # WIRED & VERIFIED 2026-06-14 against live pages. Both sites reachable from
+  # datacenter IPs (no WAF block). The comment lists are server-rendered.
+
+  # TC260: every row on /portal/suggestion is a draft-standard comment period, so
+  # the whole list is alert-worthy. DocketCollector hashes the normalized list
+  # region (div.right); a new draft appearing changes the hash -> ALERT.
+  # {name, url, selector}.
+  tc260_pages:
+    - name: "TC260 标准征求意见"
+      url: "https://www.tc260.org.cn/portal/suggestion"
+      selector: "div.right"
+
+  # CAC: no dedicated comment column — solicitations are posted inline in the
+  # 政策法规 feed. ListingCollector parses each row; AI items -> digest:regulation,
+  # AI comment-periods -> alert. {name, url, row_selector}.
+  cac_pages:
+    - name: "CAC 政策法规"
+      url: "https://www.cac.gov.cn/wxzw/zcfg/A093703index_1.htm"
+      row_selector: "#loadingInfoPage a[href*='/c_']"
+
+  # MIIT: collector ready (collectors/miit.py). Listing pages (政策文件
+  # /zwgk/zcwj/, 最新政策 /xwfb/zxzc/) are JS-rendered SPAs (jQuery+layui+require.js)
+  # — rows load via AJAX, so a row_selector on static HTML finds nothing. Wiring
+  # needs the backing endpoint (browser devtools), deferred per SPEC anti-goal
+  # (no source until it fires >=3 useful items). {name, url, row_selector}.
+  miit_pages: []
+
+  # AI keyword gate: promotes regulatory items to digest:regulation, and (for CAC
+  # listing rows) to alert when combined with a comment-period marker.
+  keywords: [人工智能, 算法, 大模型, 生成式, 智能体, 深度合成, 算力]
+#
+rss:                    # rss.py: lab blogs, 机器之心, 量子位, rival newsletters
+  # → digest:discourse
+  discourse:
+    - name: 量子位 (QbitAI)
+      url: https://www.qbitai.com/feed
+    # 机器之心 (Jiqizhixin): no working public RSS — official /rss & /feed return HTML,
+    # and the public rsshub.app instance 403s. Either self-host RSSHub and use the
+    # route below, or keep it on the manual-skim list (see SPEC "stays manual").
+    # - name: 机器之心 (Jiqizhixin)
+    #   url: https://<your-rsshub-host>/jiqizhixin/article
+
+  # → digest:rivals (titles only in digest, so you never duplicate them unknowingly)
+  # Substack {name}.substack.com/feed is reliable; the rest marked VERIFY.
+  rivals:
+    - name: ChinAI (Jeffrey Ding)
+      url: https://chinai.substack.com/feed
+    - name: AI Safety in China (Concordia AI)
+      url: https://aisafetychina.substack.com/feed
+    # GeopoliTech: feed is valid XML but EMPTY (0 entries as of 2026-06-14) —
+    # dormant or placeholder. Re-enable once it's actually publishing
+    # (SPEC anti-goal: no source until it fires >=3 useful items).
+    # - name: GeopoliTech
+    #   url: https://geopolitechs.substack.com/feed
+    - name: Recode China AI
+      url: https://recodechinaai.substack.com/feed
+    - name: Interconnected (Kevin Xu)
+      url: https://interconnected.blog/rss/
+    - name: ChinaTalk (Jordan Schneider)
+      url: https://www.chinatalk.media/feed
+
+github:                 # github_rel.py: lab orgs — releases + model-card commits
+  orgs:
+    - deepseek-ai          # DeepSeek
+    - QwenLM               # Alibaba Qwen
+    - THUDM                # Zhipu / Tsinghua KEG (GLM, CogVLM)
+    - MoonshotAI           # Kimi
+    - InternLM             # Shanghai AI Lab
+    - OpenGVLab            # Shanghai AI Lab (InternVL, InternImage)
+    - ByteDance-Seed       # ByteDance Seed
+    - 01-ai                # 01.AI (Yi)
+    - baichuan-inc         # Baichuan
+    - MiniMax-AI           # MiniMax
+    - stepfun-ai           # StepFun
+    - Tencent-Hunyuan      # Tencent Hunyuan
+    - PaddlePaddle         # Baidu ERNIE lives under PaddlePaddle/ERNIE
+    - OpenBMB              # MiniCPM / CPM
+    - inclusionAI          # Ant Group (Ling / Bailing)
+    - SkyworkAI            # Skywork / Kunlun
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Delivery
+# ─────────────────────────────────────────────────────────────────────────────
+digest:
+  recipients: [css216@nyu.edu]
+  sender: "Parallel Frontier <digest@your-verified-domain.com>"  # MUST be a Resend-verified domain
+  send_hour_utc: 6          # ~07:30 UK in summer; fixed UTC, accept DST drift (see SPEC)
+  provider: resend          # resend | postmark  (API key in GitHub secrets: RESEND_API_KEY)
+  capture_url: ""           # optional footer link to your manual capture file
+# alert:
+#   telegram_chat_id: ""    # optional: mirror alert-tier only, for true interrupts

@@ -1,0 +1,11 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Local dev store (production store lives in Turso, off-git — see SPEC)
+data/
+*.db
+
+# Secrets
+.env

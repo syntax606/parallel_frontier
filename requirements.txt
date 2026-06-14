@@ -1,0 +1,15 @@
+# Parallel Frontier pipeline dependencies
+
+# Store: remote libSQL (Turso) in production. Omit for local-SQLite dev
+# (stdlib sqlite3 is used automatically when TURSO_DATABASE_URL is unset).
+libsql-experimental>=0.0.40
+
+# Config
+PyYAML>=6.0
+
+# Collectors (added as modules land)
+requests>=2.31         # cac.py / tc260.py / miit.py / github_rel.py
+feedparser>=6.0        # rss.py
+beautifulsoup4>=4.12   # normalize.py: HTML main-content extraction
+lxml>=5.0              # bs4 parser + encoding detection for gov sites (GBK/GB2312)
+# arxiv API is plain HTTP via requests; no extra dep needed

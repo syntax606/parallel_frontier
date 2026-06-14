@@ -1,0 +1,46 @@
+name: pipeline
+
+# One workflow, one serialized writer (SPEC: no second workflow racing the store).
+# Two schedules route through the SAME entrypoint:
+#   * 06:00 UTC daily  -> full run + digest  (~07:00 BST / 06:00 GMT; UTC cron does
+#                         not observe DST, so it drifts an hour twice a year — fine)
+#   * every 4 hours    -> docket poll, alerts-only (immediate alert on change)
+# NOTE: GitHub disables cron on repos with 60 days of no commits; the data flowing
+# in keeps commits flowing if you persist anything, otherwise nudge it periodically.
+on:
+  schedule:
+    - cron: "0 6 * * *"     # daily full digest
+    - cron: "0 */4 * * *"   # docket poll
+  workflow_dispatch:        # manual full run (github.event.schedule is empty)
+
+# Serialize: the daily and 4-hourly runs must never write the store concurrently.
+concurrency:
+  group: pipeline
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
+      TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}   # github_rel.py: 5000 req/hr
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Run pipeline
+        run: |
+          if [ "${{ github.event.schedule }}" = "0 */4 * * *" ]; then
+            python -m pipeline.run --alerts-only
+          else
+            python -m pipeline.run
+          fi
