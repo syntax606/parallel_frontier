@@ -226,7 +226,10 @@ github:                 # github_rel.py: lab orgs — releases + model-card comm
 # ─────────────────────────────────────────────────────────────────────────────
 digest:
   recipients: [css216@nyu.edu]
-  sender: "Parallel Frontier <digest@your-verified-domain.com>"  # MUST be a Resend-verified domain
+  # Resend's test sender — no domain verification needed, but ONLY delivers to the
+  # email your Resend account is registered under. Swap to a verified domain
+  # (e.g. digest@yourdomain.com) for production / arbitrary recipients.
+  sender: "Parallel Frontier <onboarding@resend.dev>"
   send_hour_utc: 6          # ~07:30 UK in summer; fixed UTC, accept DST drift (see SPEC)
   provider: resend          # resend | postmark  (API key in GitHub secrets: RESEND_API_KEY)
   capture_url: ""           # optional footer link to your manual capture file
