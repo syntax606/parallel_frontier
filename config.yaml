@@ -186,17 +186,21 @@ rss:                    # rss.py: lab blogs, 机器之心, 量子位, rival news
   # → digest:rivals (titles only in digest, so you never duplicate them unknowingly)
   # Substack {name}.substack.com/feed is reliable; the rest marked VERIFY.
   rivals:
-    - name: ChinAI (Jeffrey Ding)
-      url: https://chinai.substack.com/feed
-    - name: AI Safety in China (Concordia AI)
-      url: https://aisafetychina.substack.com/feed
+    # NOTE: *.substack.com feeds 403 from GitHub Actions datacenter IPs (IP-level
+    # block — a browser User-Agent does NOT defeat it; confirmed in CI). These are
+    # newsletters you can subscribe to by email directly. Re-enable if you ever run
+    # the pipeline from a residential IP or behind a proxy.
+    # - name: ChinAI (Jeffrey Ding)
+    #   url: https://chinai.substack.com/feed
+    # - name: AI Safety in China (Concordia AI)
+    #   url: https://aisafetychina.substack.com/feed
     # GeopoliTech: feed is valid XML but EMPTY (0 entries as of 2026-06-14) —
     # dormant or placeholder. Re-enable once it's actually publishing
     # (SPEC anti-goal: no source until it fires >=3 useful items).
     # - name: GeopoliTech
     #   url: https://geopolitechs.substack.com/feed
-    - name: Recode China AI
-      url: https://recodechinaai.substack.com/feed
+    # - name: Recode China AI
+    #   url: https://recodechinaai.substack.com/feed
     - name: Interconnected (Kevin Xu)
       url: https://interconnected.blog/rss/
     - name: ChinaTalk (Jordan Schneider)
