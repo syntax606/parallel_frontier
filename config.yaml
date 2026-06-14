@@ -225,7 +225,10 @@ github:                 # github_rel.py: lab orgs — releases + model-card comm
 # Delivery
 # ─────────────────────────────────────────────────────────────────────────────
 digest:
-  recipients: [css216@nyu.edu]
+  # Resend's test sender only delivers to your Resend account email
+  # (syntax606@gmail.com). Once you verify a domain, switch the sender below and
+  # you can send anywhere (e.g. css216@nyu.edu).
+  recipients: [syntax606@gmail.com]
   # Resend's test sender — no domain verification needed, but ONLY delivers to the
   # email your Resend account is registered under. Swap to a verified domain
   # (e.g. digest@yourdomain.com) for production / arbitrary recipients.
