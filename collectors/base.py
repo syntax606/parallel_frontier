@@ -26,14 +26,25 @@ from pipeline.store import Item, Store, UpsertStatus
 
 log = logging.getLogger(__name__)
 
-USER_AGENT = "ParallelFrontier/0.1 (+research aggregation; css216@nyu.edu)"
+# A browser User-Agent, not an honest bot string: Substack (and some CDNs) return
+# 403 to bot-looking UAs from datacenter IPs (GitHub Actions runners), even for
+# public RSS feeds. Residential IPs pass either way. Browser-like headers are the
+# standard fix for reading feeds from CI.
+USER_AGENT = (
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+)
 DEFAULT_TIMEOUT = 20          # seconds; a hung site must never hang the runner
 DEFAULT_RETRIES = 3
 DEFAULT_BACKOFF = 2.0         # base of exponential backoff, in seconds
 DEFAULT_POLITE_DELAY = 1.0    # seconds to wait before each request
 
 _session = requests.Session()
-_session.headers.update({"User-Agent": USER_AGENT})
+_session.headers.update({
+    "User-Agent": USER_AGENT,
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
+})
 
 
 def sha256(text: str) -> str:

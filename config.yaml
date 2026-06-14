@@ -12,7 +12,7 @@ arxiv:
     - cs.LG
     - cs.CV
     - stat.ML
-  window_hours: 24
+  window_hours: 36   # fetch margin; arXiv skips weekends. Digest still shows last-24h-new (dedup handles overlap)
 
   # 2) Keyword gate: a netted paper reaches the Research digest only if its
   #    title or abstract matches one of these (case-insensitive substring).
