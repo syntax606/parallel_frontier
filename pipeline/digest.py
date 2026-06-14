@@ -177,7 +177,10 @@ def send_via_resend(digest: Digest, recipients: list[str], sender: str) -> dict:
         },
         timeout=20,
     )
-    resp.raise_for_status()
+    if resp.status_code >= 400:
+        # Resend's body explains the reason (unverified domain, test-sender
+        # recipient restriction, bad key, …) — surface it, don't swallow it.
+        raise RuntimeError(f"Resend {resp.status_code}: {resp.text[:500]}")
     return resp.json()
 
 
