@@ -197,7 +197,10 @@ class Store:
                     item.tier, item.category, 1 if item.pinned else 0,
                 ),
             )
-            item_id = cur.lastrowid
+            # Resolve the id via the UNIQUE url rather than cursor.lastrowid:
+            # remote libSQL doesn't reliably populate lastrowid over HTTP.
+            cur.execute("SELECT id FROM items WHERE url = ?", (item.url,))
+            item_id = cur.fetchone()[0]
             self._add_version(cur, item_id, item.content_hash, item.raw_excerpt, now)
             self.conn.commit()
             return "new"
