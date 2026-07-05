@@ -14,54 +14,20 @@ arxiv:
     - stat.ML
   window_hours: 36   # fetch margin; arXiv skips weekends. Digest still shows last-24h-new (dedup handles overlap)
 
-  # 2) Keyword gate: a netted paper reaches the Research digest only if its
-  #    title or abstract matches one of these (case-insensitive substring).
-  #    Net items with NO keyword/roster hit → archive (searchable, never emailed).
-  keywords:
-    # core LLM / scaling
-    - large language model
-    - LLM
-    - foundation model
-    - pretraining
-    - scaling law
-    - mixture-of-experts
-    - mixture of experts
-    - MoE
-    # reasoning / RL / agents
-    - reasoning
-    - chain-of-thought
-    - reinforcement learning
-    - RLHF
-    - RLAIF
-    - reward model
-    - agent
-    - agentic
-    - tool use
-    # capability surfaces
-    - long context
-    - long-context
-    - multimodal
-    - vision-language
-    - retrieval-augmented
-    - RAG
-    - code generation
-    - instruction tuning
-    - alignment
-    # efficiency / serving
-    - quantization
-    - distillation
-    - speculative decoding
-    - KV cache
-    - inference efficiency
-    # Chinese-language terms
-    - 大模型
-    - 大语言模型
-    - 生成式
-    - 智能体
-    - 强化学习
-    - 推理
-    - 多模态
-    - 对齐
+  # 2) Roster-FIRST gate. The primary signal is the roster (tracked labs, below).
+  #    A netted paper reaches the Research digest only if it is a roster hit OR its
+  #    TITLE matches this tight topic allowlist. Everything else → archive.
+  #    Keep this list SHORT and high-signal: it is the ONLY non-roster path in, so
+  #    broad terms (LLM/agent/reasoning) do not belong here — they match nearly
+  #    every cs.AI/cs.CL paper. Add sparingly, prune often.
+  topic_allowlist:
+    - technical report      # "X Technical Report" = a major model release
+    - system card
+    - model card
+    - frontier model
+    - 技术报告
+    # NB: "foundation model" / "world model" were removed — too broad, they catch
+    # plant/lunar/time-series/robotics papers. Keep this list release-signal only.
 
   # 3) Lab/org roster: ALWAYS pinned to the top of Research and shown in full,
   #    regardless of the keyword gate. A paper is a "roster hit" if it matches a
@@ -78,11 +44,11 @@ arxiv:
       aliases: [DeepSeek, DeepSeek-V2, DeepSeek-V3, DeepSeek-R1, DeepSeek-Coder, DeepSeekMath, DeepSeek-VL]
 
     - name: Qwen / Alibaba (通义千问)
-      authors: [Junyang Lin, Jingren Zhou, Bowen Yu, An Yang, Binyuan Hui, Chang Zhou]
+      authors: [Junyang Lin, Jingren Zhou, Binyuan Hui]   # pruned common names (An Yang/Bowen Yu/Chang Zhou collide)
       aliases: [Qwen, Qwen2, Qwen2.5, Qwen3, QwQ, Tongyi, 通义千问]
 
     - name: Zhipu AI / Tsinghua KEG (智谱)
-      authors: [Jie Tang, Aohan Zeng, Zhengxiao Du, Ming Ding, Yuxiao Dong]
+      authors: [Jie Tang, Aohan Zeng, Zhengxiao Du, Yuxiao Dong]   # pruned Ming Ding (common)
       aliases: [GLM, ChatGLM, GLM-4, CogVLM, CogView, CogAgent, Zhipu]
 
     - name: Moonshot AI (月之暗面)
@@ -90,7 +56,7 @@ arxiv:
       aliases: [Kimi, Kimi-K2, Moonshot, 月之暗面]
 
     - name: Shanghai AI Lab (上海人工智能实验室)
-      authors: [Kai Chen, Jifeng Dai, Yu Qiao, Wenhai Wang, Conghui He]
+      authors: [Jifeng Dai, Conghui He]   # pruned Kai Chen/Yu Qiao/Wenhai Wang (common)
       aliases: [InternLM, InternVL, Intern-, InternImage, OpenGVLab, 书生]
 
     - name: ByteDance Seed (字节豆包)
@@ -205,6 +171,30 @@ rss:                    # rss.py: lab blogs, 机器之心, 量子位, rival news
       url: https://interconnected.blog/rss/
     - name: ChinaTalk (Jordan Schneider)
       url: https://www.chinatalk.media/feed
+    - name: CSET (Georgetown)
+      url: https://cset.georgetown.edu/feed/
+    - name: Concordia AI          # via its own site — the aisafetychina Substack is CI-blocked
+      url: https://concordia-ai.com/feed/
+
+huggingface:            # huggingface_rel.py: model releases (HF handles ≠ GitHub handles)
+  per_org: 8
+  orgs:
+    - deepseek-ai
+    - Qwen
+    - zai-org            # Zhipu / GLM (not THUDM on HF)
+    - moonshotai
+    - internlm
+    - OpenGVLab
+    - ByteDance-Seed
+    - 01-ai
+    - baichuan-inc
+    - MiniMaxAI          # not MiniMax-AI on HF
+    - stepfun-ai
+    - tencent
+    - baidu
+    - openbmb
+    - inclusionAI
+    - Skywork
 
 github:                 # github_rel.py: lab orgs — releases + model-card commits
   orgs:

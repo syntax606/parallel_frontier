@@ -1,15 +1,19 @@
-"""arXiv collector: broad category net -> keyword gate -> pinned lab/org roster.
+"""arXiv collector: broad category net -> ROSTER-FIRST filter.
 
-See SPEC "arXiv: broad net + pinned lab/org roster". Three layers:
+Three layers, roster-first (the roster is the primary signal — see SPEC update):
 
   1. Net    — query `cat:cs.AI OR cat:cs.CL OR ...` over a rolling window.
-  2. Gate   — a netted paper reaches digest:research only if its title/abstract
-              hits a topic keyword; everything else goes to archive.
-  3. Roster — papers matching a roster lab (author name OR alias in
-              title/abstract/comment) are pinned (shown first, gate-exempt).
+  2. Filter — a netted paper reaches digest:research only if it is a roster hit
+              OR its TITLE matches the tight topic allowlist. Everything else
+              goes to archive (searchable, never emailed).
+  3. Roster — papers matching a roster lab (author name OR model alias in the
+              title) are pinned to the top of Research.
 
-Config under `arxiv:` — categories, window_hours, max_results, keywords, roster.
-arXiv asks for polite use (no faster than ~1 req / 3s), honored via http_get.
+The topic allowlist is deliberately small: broad LLM terms match nearly every
+cs.AI/cs.CL paper, so they're excluded — tracked labs, not topics, drive Research.
+
+Config under `arxiv:` — categories, window_hours, max_results, topic_allowlist,
+roster. arXiv asks for polite use (~1 req / 3s), honored via http_get.
 """
 
 from __future__ import annotations
@@ -37,14 +41,14 @@ class ArxivCollector(Collector):
     def __init__(
         self,
         categories: list[str],
-        keywords: list[str],
+        topic_allowlist: list[str],
         roster: list[dict],
         *,
         window_hours: int = 24,
         max_results: int = 300,
     ) -> None:
         self.categories = categories
-        self.keywords = [k.lower() for k in keywords]
+        self.topic_allowlist = [k.lower() for k in topic_allowlist]
         self.roster = roster
         self.window_hours = window_hours
         self.max_results = max_results
@@ -93,8 +97,8 @@ class ArxivCollector(Collector):
                 continue
 
             pinned = self._roster_hit(entry, title)
-            keyword = self._keyword_hit(title)
-            if pinned or keyword:
+            topic = self._topic_hit(title)
+            if pinned or topic:
                 tier, cat = "digest", "research"
             else:
                 tier, cat = "archive", "research"
@@ -132,18 +136,30 @@ class ArxivCollector(Collector):
             re.IGNORECASE,
         )
 
-    def _keyword_hit(self, title: str) -> bool:
-        # Title-only: a paper *about* a topic says so in its title; an abstract
-        # mention is too permissive (cs.AI/CL are LLM-saturated). Keeps Research
-        # to a readable size. Non-matches still land in archive (searchable).
+    def _topic_hit(self, title: str) -> bool:
+        # Title-only against the tight allowlist. Roster is the primary signal;
+        # this is just a small net for must-see themes from non-tracked groups.
         hay = title.lower()
-        return any(k in hay for k in self.keywords)
+        return any(k in hay for k in self.topic_allowlist)
 
     def _roster_hit(self, entry, title: str) -> bool:
         authors = " ".join(a.get("name", "") for a in entry.get("authors", []))
         if any(p.search(authors) for p in self._author_pats):
             return True
-        return any(p.search(title) for p in self._alias_pats)
+        return self._alias_leads_title(title)
+
+    def _alias_leads_title(self, title: str) -> bool:
+        # A model release *leads* with its name ("Qwen3 Technical Report",
+        # "DeepSeek-V3: ..."); a third party mentions it late ("X ... for Qwen3").
+        # Only the former signals authorship, so require the alias in the title's
+        # lead (before the first colon, else the first ~30 chars).
+        lead_end = title.find(":")
+        if lead_end == -1:
+            lead_end = 30
+        return any(
+            (m := p.search(title)) is not None and m.start() <= lead_end
+            for p in self._alias_pats
+        )
 
 
 def collectors_from_config(cfg: dict) -> list[ArxivCollector]:
@@ -153,7 +169,7 @@ def collectors_from_config(cfg: dict) -> list[ArxivCollector]:
     return [
         ArxivCollector(
             categories=a["categories"],
-            keywords=a.get("keywords") or [],
+            topic_allowlist=a.get("topic_allowlist") or [],
             roster=a.get("roster") or [],
             window_hours=a.get("window_hours", 24),
             max_results=a.get("max_results", 300),
