@@ -87,7 +87,14 @@ def do_alerts_only(store: Store, cfg: dict, collectors: list[Collector]) -> bool
 def do_full(store: Store, cfg: dict, collectors: list[Collector], *, dry_run: bool) -> None:
     run_collectors(store, collectors)
     dcfg = cfg.get("digest") or {}
-    digest = build_digest(store, capture_url=dcfg.get("capture_url") or None)
+    # Heartbeat reports only this run's sources (+ the digest send-status), so
+    # feeds removed from config drop off instead of lingering with a stale status.
+    active_sources = sorted({c.source for c in collectors} | {"digest"})
+    digest = build_digest(
+        store,
+        capture_url=dcfg.get("capture_url") or None,
+        active_sources=active_sources,
+    )
 
     if dry_run:
         sys.stderr.write(f"[dry-run] subject: {digest.subject}\n")

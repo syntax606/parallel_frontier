@@ -288,19 +288,30 @@ class Store:
         )
         return cur.fetchall()
 
-    def latest_runs(self) -> list[tuple]:
+    def latest_runs(self, sources: Optional[list[str]] = None) -> list[tuple]:
         """Most-recent run per source, for the heartbeat footer.
 
-        Returns rows of (source, run_at, ok, item_count, error).
+        If `sources` is given, only those are reported — so a source removed from
+        config stops appearing in the heartbeat instead of lingering with its last
+        (often failed) status. Returns rows of (source, run_at, ok, item_count, error).
         """
         cur = self.conn.cursor()
+        where = ""
+        params: tuple = ()
+        if sources is not None:
+            if not sources:
+                return []
+            where = f"WHERE s.source IN ({','.join('?' for _ in sources)})"
+            params = tuple(sources)
         cur.execute(
-            """SELECT s.source, s.run_at, s.ok, s.item_count, s.error
+            f"""SELECT s.source, s.run_at, s.ok, s.item_count, s.error
                  FROM source_runs s
                  JOIN (SELECT source, MAX(run_at) AS m
                          FROM source_runs GROUP BY source) latest
                    ON latest.source = s.source AND latest.m = s.run_at
+                {where}
                 ORDER BY s.source""",
+            params,
         )
         return cur.fetchall()
 

@@ -86,6 +86,7 @@ def build_digest(
     now: Optional[datetime] = None,
     capture_url: Optional[str] = None,
     window_hours: int = 24,
+    active_sources: Optional[list[str]] = None,
 ) -> Digest:
     now = now or datetime.now(timezone.utc)
     since = (now - timedelta(hours=window_hours)).replace(microsecond=0).isoformat()
@@ -95,7 +96,8 @@ def build_digest(
     research = store.digest_items("research", since)
     discourse = store.digest_items("discourse", since)
     rivals = store.digest_items("rivals", since)
-    runs = store.latest_runs()
+    # Only report currently-active sources so removed feeds don't linger red.
+    runs = store.latest_runs(active_sources)
 
     # alerts_since rows: (id, source, url, title, changed_at)
     docket_rows = [_item_row(r[2], r[3], source=r[1]) for r in docket]
