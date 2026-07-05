@@ -206,6 +206,16 @@ rss:                    # rss.py: lab blogs, 机器之心, 量子位, rival news
     - name: Concordia AI          # via its own site — the aisafetychina Substack is CI-blocked
       url: https://concordia-ai.com/feed/
 
+# 安全内参 (secrss.com): governance/security trade press. No RSS, but the homepage
+# is server-rendered — parsed as a listing, keyword-gated to the AI/governance cut.
+secrss:
+  url: "https://www.secrss.com/"
+  keywords: [人工智能, 大模型, 算法, 智能体, 生成式, 深度合成, AIGC, 数据安全, 数据出境, 个人信息, 算力, 监管, 治理]
+
+# AIIA (aiiaorg.cn) working-group rosters: DEFERRED — the main site and the
+# aihub.caict.ac.cn/aiia_wgs 工作组 page are both JS-rendered SPAs (no static roster
+# content). Needs the backing endpoint (browser devtools) to wire.
+
 huggingface:            # huggingface_rel.py: model releases (HF handles ≠ GitHub handles)
   per_org: 8
   orgs:
