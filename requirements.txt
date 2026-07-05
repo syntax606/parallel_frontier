@@ -12,4 +12,5 @@ requests>=2.31         # cac.py / tc260.py / miit.py / github_rel.py
 feedparser>=6.0        # rss.py
 beautifulsoup4>=4.12   # normalize.py: HTML main-content extraction
 lxml>=5.0              # bs4 parser + encoding detection for gov sites (GBK/GB2312)
+python-docx>=1.1       # tc260_drafting.py: parse 编制说明 .docx for 起草单位
 # arxiv API is plain HTTP via requests; no extra dep needed

@@ -24,7 +24,9 @@ from pathlib import Path
 
 import yaml
 
-from collectors import arxiv_labs, cac, github_rel, huggingface_rel, miit, rss, tc260
+from collectors import (
+    arxiv_labs, cac, github_rel, huggingface_rel, miit, rss, tc260, tc260_drafting,
+)
 from collectors.base import Collector
 from pipeline.digest import build_alert, build_digest, send_via_resend
 from pipeline.store import Store, connect, utc_now
@@ -54,6 +56,7 @@ def build_collectors(cfg: dict, *, alerts_only: bool) -> list[Collector]:
         collectors += arxiv_labs.collectors_from_config(cfg)
         collectors += github_rel.collectors_from_config(cfg)
         collectors += huggingface_rel.collectors_from_config(cfg)
+        collectors += tc260_drafting.collectors_from_config(cfg)  # downloads .docx; daily only
     return collectors
 
 
