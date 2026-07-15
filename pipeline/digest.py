@@ -96,6 +96,7 @@ def build_digest(
     research = store.digest_items("research", since)
     discourse = store.digest_items("discourse", since)
     rivals = store.digest_items("rivals", since)
+    russia = store.region_items("russia", since)
     # Only report currently-active sources so removed feeds don't linger red.
     runs = store.latest_runs(active_sources)
 
@@ -106,6 +107,7 @@ def build_digest(
     res_rows = [_item_row(r[2], r[3], gloss=r[4], source=r[1], pinned=bool(r[7])) for r in research]
     dis_rows = [_item_row(r[2], r[3], source=r[1]) for r in discourse]
     riv_rows = [_item_row(r[2], r[3], source=r[1]) for r in rivals]  # titles only
+    rus_rows = [_item_row(r[2], r[3], gloss=r[4], source=r[1]) for r in russia]
 
     sections = [
         _section(
@@ -117,6 +119,7 @@ def build_digest(
         _section("Research", res_rows),
         _section("Discourse", dis_rows),
         _section("Rivals published", riv_rows),
+        _section("🇷🇺 Russia", rus_rows) if rus_rows else "",
         _heartbeat(runs),
     ]
 

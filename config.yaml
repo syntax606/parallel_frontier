@@ -256,6 +256,50 @@ github:                 # github_rel.py: lab orgs — releases + model-card comm
     - SkyworkAI            # Skywork / Kunlun
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Russia edition (region=russia) — official/state feeds, title-gated to AI/tech.
+# Renders in a 🇷🇺 Russia block in the same email. Gate mixes Russian stems +
+# English (no bare "ИИ" — collides with "России"). Conservative: 3 official/state
+# sources; validate before adding corporate (Sber/Yandex) or think tanks.
+# ─────────────────────────────────────────────────────────────────────────────
+russia:
+  keywords:
+    # Russian stems
+    - искусственн          # искусственный интеллект (AI)
+    - нейросет             # нейросеть (neural net)
+    - машинное обучение
+    - большая языковая модель
+    - полупроводник        # semiconductor
+    - микроэлектроник
+    - суперкомпьютер
+    - квантов              # quantum
+    - беспилотн            # autonomous/UAV
+    - гигачат              # GigaChat (Sber)
+    - yandexgpt
+    # tech-sovereignty / chip policy — the real Russia "frontier" signal
+    - импортозамещени      # import substitution (chips)
+    - технологическ сувере # technological sovereignty
+    - цифровой суверенит    # digital sovereignty
+    # English (for TASS en + English mentions)
+    - artificial intelligence
+    - machine learning
+    - neural network
+    - semiconductor
+    - microelectronic
+    - supercomputer
+    - quantum comput
+    - large language model
+  sources:
+    - name: Кремль (Kremlin)
+      url: http://kremlin.ru/events/president/news/feed   # Russian-language feed
+      category: regulation
+    - name: TASS
+      url: https://tass.com/rss/v2.xml                     # English state news
+      category: discourse
+    - name: Government.ru
+      url: http://government.ru/all/rss/                    # Russian-language feed
+      category: regulation
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Delivery
 # ─────────────────────────────────────────────────────────────────────────────
 digest:

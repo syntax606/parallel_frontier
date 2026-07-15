@@ -79,6 +79,7 @@ class Item:
     tier: Tier = "archive"
     category: Optional[Category] = None
     pinned: bool = False
+    region: str = "china"
 
 
 SCHEMA = """
@@ -96,6 +97,7 @@ CREATE TABLE IF NOT EXISTS items (
   category      TEXT CHECK (category IS NULL OR
                             category IN ('regulation','research','discourse','rivals')),
   pinned        INTEGER NOT NULL DEFAULT 0,   -- roster hits pin to top of their section
+  region        TEXT NOT NULL DEFAULT 'china', -- 'china' | 'russia' | ... for the edition's country blocks
   used_in_issue INTEGER
 );
 
@@ -188,13 +190,13 @@ class Store:
         if row is None:
             cur.execute(
                 """INSERT INTO items
-                     (source, url, title, title_en, published_at,
-                      first_seen, last_seen, current_hash, tier, category, pinned, used_in_issue)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)""",
+                     (source, url, title, title_en, published_at, first_seen, last_seen,
+                      current_hash, tier, category, pinned, region, used_in_issue)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)""",
                 (
                     item.source, item.url, item.title, item.title_en,
                     item.published_at, now, now, item.content_hash,
-                    item.tier, item.category, 1 if item.pinned else 0,
+                    item.tier, item.category, 1 if item.pinned else 0, item.region,
                 ),
             )
             # Resolve the id via the UNIQUE url rather than cursor.lastrowid:
@@ -216,10 +218,10 @@ class Store:
         cur.execute(
             """UPDATE items
                  SET current_hash = ?, last_seen = ?, title = ?, tier = ?,
-                     category = ?, pinned = ?
+                     category = ?, pinned = ?, region = ?
                WHERE id = ?""",
             (item.content_hash, now, item.title, item.tier, item.category,
-             1 if item.pinned else 0, item_id),
+             1 if item.pinned else 0, item.region, item_id),
         )
         self._add_version(cur, item_id, item.content_hash, item.raw_excerpt, now)
         self.conn.commit()
@@ -257,20 +259,36 @@ class Store:
 
     # -- reads ---------------------------------------------------------------
 
-    def digest_items(self, category: Category, since: str) -> list[tuple]:
-        """digest-tier items in a category first seen at/after `since` (ISO ts).
+    def digest_items(self, category: Category, since: str, region: str = "china") -> list[tuple]:
+        """digest-tier items in a category+region first seen at/after `since`.
 
         Returns rows of
         (id, source, url, title, title_en, published_at, first_seen, pinned),
-        pinned (roster hits) first.
+        pinned (roster hits) first. Defaults to region='china' so the existing
+        sections stay China-scoped once other regions are added.
         """
         cur = self.conn.cursor()
         cur.execute(
             """SELECT id, source, url, title, title_en, published_at, first_seen, pinned
                  FROM items
-                WHERE tier = 'digest' AND category = ? AND first_seen >= ?
+                WHERE tier = 'digest' AND category = ? AND region = ? AND first_seen >= ?
                 ORDER BY pinned DESC, first_seen DESC""",
-            (category, since),
+            (category, region, since),
+        )
+        return cur.fetchall()
+
+    def region_items(self, region: str, since: str) -> list[tuple]:
+        """All digest-tier items for a region (any category), for a country block.
+
+        Same row shape as digest_items.
+        """
+        cur = self.conn.cursor()
+        cur.execute(
+            """SELECT id, source, url, title, title_en, published_at, first_seen, pinned
+                 FROM items
+                WHERE tier = 'digest' AND region = ? AND first_seen >= ?
+                ORDER BY pinned DESC, first_seen DESC""",
+            (region, since),
         )
         return cur.fetchall()
 

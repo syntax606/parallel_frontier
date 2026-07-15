@@ -45,11 +45,24 @@ def _entry_date(entry) -> Optional[str]:
 
 
 class RssCollector(Collector):
-    def __init__(self, name: str, url: str, category: Category) -> None:
+    def __init__(
+        self,
+        name: str,
+        url: str,
+        category: Category,
+        *,
+        keywords: Optional[list[str]] = None,
+        region: str = "china",
+        source: Optional[str] = None,
+    ) -> None:
         self.name = name
         self.url = url
         self.category = category
-        self.source = f"rss:{_slug(url)}"
+        # When keywords are given, only title-matching items reach digest tier;
+        # the rest go to archive. Trusted curated feeds pass keywords=None (all digest).
+        self.keywords = [k.lower() for k in keywords] if keywords else None
+        self.region = region
+        self.source = source or f"rss:{_slug(url)}"
 
     def fetch(self) -> list[Item]:
         resp = http_get(self.url)
@@ -62,18 +75,21 @@ class RssCollector(Collector):
                 continue
             title = (entry.get("title") or "").strip()
             summary = entry.get("summary") or ""
-            # Hash title+summary: an edited post re-surfaces as a changed version.
-            content_hash = sha256(f"{title}\n{summary}")
+            gated_out = self.keywords is not None and not any(
+                k in title.lower() for k in self.keywords
+            )
             items.append(
                 Item(
                     source=self.source,
                     url=link,
                     title=title,
-                    content_hash=content_hash,
+                    # Hash title+summary: an edited post re-surfaces as a changed version.
+                    content_hash=sha256(f"{title}\n{summary}"),
                     raw_excerpt=summary[:2000],
                     published_at=_entry_date(entry),
-                    tier="digest",
+                    tier="archive" if gated_out else "digest",
                     category=self.category,
+                    region=self.region,
                 )
             )
         return items
