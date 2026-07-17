@@ -119,6 +119,7 @@ CREATE TABLE IF NOT EXISTS source_runs (
   error      TEXT
 );
 
+CREATE INDEX IF NOT EXISTS idx_items_region      ON items(region);
 CREATE INDEX IF NOT EXISTS idx_items_tier        ON items(tier);
 CREATE INDEX IF NOT EXISTS idx_items_category    ON items(category);
 CREATE INDEX IF NOT EXISTS idx_items_last_seen   ON items(last_seen);
@@ -160,8 +161,35 @@ class Store:
     # -- lifecycle -----------------------------------------------------------
 
     def init_schema(self) -> None:
-        """Create tables and indexes if absent. Idempotent."""
+        """Create tables/indexes if absent, then apply additive migrations.
+
+        Idempotent, and safe on both fresh and pre-existing databases.
+        """
         cur = self.conn.cursor()
+        # Columns added after a database was first created. CREATE TABLE IF NOT
+        # EXISTS silently no-ops on an existing table, so new columns must be
+        # ALTERed in or every write fails with "no column named X".
+        # ALTER TABLE ADD COLUMN needs a DEFAULT when NOT NULL.
+        migrations = {
+            "items": [
+                ("pinned", "INTEGER NOT NULL DEFAULT 0"),
+                ("region", "TEXT NOT NULL DEFAULT 'china'"),
+            ],
+        }
+        existing_tables = {
+            r[0] for r in cur.execute(
+                "SELECT name FROM sqlite_master WHERE type='table'"
+            ).fetchall()
+        }
+        for table, columns in migrations.items():
+            if table not in existing_tables:
+                continue  # fresh DB — SCHEMA below creates it with all columns
+            cur.execute(f"PRAGMA table_info({table})")
+            have = {row[1] for row in cur.fetchall()}
+            for name, ddl in columns:
+                if name not in have:
+                    cur.execute(f"ALTER TABLE {table} ADD COLUMN {name} {ddl}")
+
         for statement in filter(str.strip, SCHEMA.split(";")):
             cur.execute(statement)
         self.conn.commit()
